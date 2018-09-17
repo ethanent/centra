@@ -49,6 +49,17 @@ app.add('GET', '/doNotResolve', (req, res) => {
 	
 })
 
+app.add('GET', '/updates', (req, res) => {
+	if (req.url === '/updates?hey=hello' && req.headers['hey'] === 'hello' && req.headers['test'] === 'testing') {
+		res.writeHead(200)
+		res.end()
+	}
+	else {
+		res.writeHead(400)
+		res.end()
+	}
+})
+
 app.add((req, res) => {
 	res.writeHead(404)
 	res.end('404: Not found!')
@@ -90,6 +101,14 @@ w.add('Request timeout', async (result) => {
 	catch (err) {
 		result(true, 'Timeout error, as expected. ' + err)
 	}
+})
+
+w.add('Update request info on the fly', async (result) => {
+	const res = await centra('http://localhost:8081').path('/updates').query('hey', 'hello').header('hey', 'hello').headers({
+		'test': 'testing'
+	}).send()
+
+	result(true)
 })
 
 app.listen(8081, w.test)

@@ -12,7 +12,7 @@ module.exports = class CentraRequest {
 		this.method = method
 		this.data = null
 		this.sendDataAs = null
-		this.headers = {
+		this.reqHeaders = {
 			'Host': this.url.host
 		}
 		this.streamEnabled = false
@@ -41,13 +41,13 @@ module.exports = class CentraRequest {
 	}
 
 	header (header, value) {
-		this.headers[header.toLowerCase()] = value
+		this.reqHeaders[header.toLowerCase()] = value
 
 		return this
 	}
 
 	headers (headers) {
-		Object.assign(this.headers, headers)
+		Object.assign(this.reqHeaders, headers)
 
 		return this
 	}
@@ -67,19 +67,19 @@ module.exports = class CentraRequest {
 	send () {
 		return new Promise((resolve, reject) => {
 			if (this.data) {
-				const lowerCaseHeaders = Object.keys(this.headers).map((headerName) => headerName.toLowerCase())
+				const lowerCaseHeaders = Object.keys(this.reqHeaders).map((headerName) => headerName.toLowerCase())
 
 				if (this.sendDataAs === 'json' && !lowerCaseHeaders.includes('content-type')) {
-					this.headers['Content-Type'] = 'application/json'
+					this.reqHeaders['Content-Type'] = 'application/json'
 				}
 
 				if (this.sendDataAs === 'form') {
 					if (!lowerCaseHeaders.includes('content-type')) {
-						this.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+						this.reqHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
 					}
 
 					if (!lowerCaseHeaders.includes('content-length')) {
-						this.headers['Content-Length'] = Buffer.from(this.data).length
+						this.reqHeaders['Content-Length'] = Buffer.from(this.data).length
 					}
 				}
 			}
@@ -90,7 +90,7 @@ module.exports = class CentraRequest {
 				'port': this.url.port,
 				'path': this.url.pathname + this.url.search,
 				'method': this.method,
-				'headers': this.headers,
+				'headers': this.reqHeaders,
 				'setHost': false
 			}
 
