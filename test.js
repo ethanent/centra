@@ -50,7 +50,7 @@ app.add('GET', '/doNotResolve', (req, res) => {
 })
 
 app.add('GET', '/updates', (req, res) => {
-	if (req.url === '/updates?hey=hello' && req.headers['hey'] === 'hello' && req.headers['test'] === 'testing') {
+	if (req.url.path === '/updates?hey=hello' && req.headers['hey'] === 'hello' && req.headers['test'] === 'testing') {
 		res.writeHead(200)
 		res.end()
 	}
@@ -108,7 +108,10 @@ w.add('Update request info on the fly', async (result) => {
 		'test': 'testing'
 	}).send()
 
-	result(true)
+	if (res.statusCode === 200) {
+		result(true)
+	}
+	else result(false, res.statusCode)
 })
 
 app.listen(8081, w.test)
