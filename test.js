@@ -37,9 +37,6 @@ app.add('POST', '/testJSON', (req, res) => {
 app.add('POST', '/testForm', (req, res) => {
 	const parsed = qs.parse(req.body.toString())
 
-	console.log(req.headers)
-	console.log(req.body.toString())
-
 	if (parsed.hey === 'hi') {
 		res.writeHead(200)
 		res.end()

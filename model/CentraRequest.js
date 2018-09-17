@@ -94,8 +94,6 @@ module.exports = class CentraRequest {
 				'setHost': false
 			}
 
-			console.log(options)
-
 			if (this.localAddress) options.localAddress = this.localAddress
 
 			const resHandler = (res) => {
