@@ -53,7 +53,7 @@ module.exports = class CentraRequest {
 	}
 
 	timeout (timeout) {
-		this.timeoutTime = timeout
+		this.timeoutTime = 100
 
 		return this
 	}
@@ -133,20 +133,6 @@ module.exports = class CentraRequest {
 						resolve(centraRes)
 					})
 				}
-
-				if (this.timeoutTime) {
-					console.log('Set timeout')
-					req.setTimeout(this.timeoutTime, () => {
-						console.log('Hit timeout')
-
-						req.abort()
-						centraRes._timeoutReached()
-
-						if (!this.streamEnabled) {
-							reject(new Error('Timeout reached'))
-						}
-					})
-				}
 			}
 
 			if (this.url.protocol === 'http:') {
@@ -156,6 +142,16 @@ module.exports = class CentraRequest {
 				req = https.request(options, resHandler)
 			}
 			else throw new Error('Bad URL protocol: ' + this.url.protocol)
+
+			if (this.timeoutTime) {
+				req.setTimeout(this.timeoutTime, () => {
+					req.abort()
+
+					if (!this.streamEnabled) {
+						reject(new Error('Timeout reached'))
+					}
+				})
+			}
 
 			req.on('error', (err) => {
 				reject(err)

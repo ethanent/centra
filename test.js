@@ -85,7 +85,7 @@ w.add('Simple form POST', async (result) => {
 
 w.add('Request timeout', async (result) => {
 	try {
-		await centra('http://localhost:8081/doNotResolve').timeout(2000).send()
+		await centra('http://localhost:8081/doNotResolve').timeout(100).send()
 	}
 	catch (err) {
 		result(true, 'Timeout error, as expected. ' + err)
