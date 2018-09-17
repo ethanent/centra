@@ -4,7 +4,7 @@
   "description": "The powerful and awesome HTTP client for Node",
   "main": "createRequest.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test.js"
   },
   "repository": {
     "type": "git",
@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/ethanent/centra/issues"
   },
-  "homepage": "https://github.com/ethanent/centra#readme"
+  "homepage": "https://github.com/ethanent/centra#readme",
+  "devDependencies": {
+    "vaxic": "^2.3.5",
+    "whew": "^1.1.3"
+  }
 }

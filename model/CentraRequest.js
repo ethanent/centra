@@ -7,12 +7,6 @@ const {URL} = require('url')
 const CentraResponse = require(path.join(__dirname, 'CentraResponse.js'))
 
 module.exports = class CentraRequest {
-	/*
-	* Create a CentraRequest
-	* @param url
-	* @param [method=GET]
-	* @constructor
-	*/
 	constructor (url, method = 'GET') {
 		this.url = typeof url === 'string' ? new URL(url) : url
 		this.method = method
@@ -27,88 +21,72 @@ module.exports = class CentraRequest {
 		return this
 	}
 
-	/*
-	* Set a querystring property in the request
-	* @param parameter
-	* @param value
-	*/
 	query (parameter, value) {
 		this.url.searchParams.set(parameter, value)
 
 		return this
 	}
 
-	/*
-	* Set the request path
-	* @param {String} path
-	*/
 	path (path) {
 		this.url.pathname = path
 
 		return this
 	}
 
-	/*
-	* Set the request body and sending medium
-	* @param {Buffer|String|Object} data
-	* @param {String} sendAs - 'json', 'raw' are valid options
-	*/
 	body (data, sendAs) {
-		this.data = data
 		this.sendDataAs = typeof data === 'object' && !sendAs ? 'json' : (sendAs ? sendAs.toLowerCase() : 'raw')
+		this.data = this.sendDataAs === 'form' ? qs.stringify(data) : (this.sendDataAs === 'json' ? JSON.stringify(data) : data)
 
 		return this
 	}
 
-	/*
-	* Set a single header
-	* @param {String} header
-	* @param {String} value
-	*/
 	header (header, value) {
-		this.headers[header] = value
+		this.headers[header.toLowerCase()] = value
 
 		return this
 	}
 
-	/*
-	* Update request headers
-	* @param {Object} headers
-	*/
 	headers (headers) {
 		Object.assign(this.headers, headers)
 
 		return this
 	}
 
-	/*
-	* Set a timeout time for the request
-	*/
 	timeout (timeout) {
 		this.timeoutTime = timeout
 
 		return this
 	}
 
-	/*
-	* Enable streaming of response. Causes the CentraResponse provided after sending to emit 'data', 'error', and 'end' events appropriately
-	*/
 	stream () {
 		this.streamEnabled = true
 
 		return this
 	}
 
-	/*
-	* Make the request with all defined settings
-	* @async
-	* @return {Promise<CentraResponse>}
-	*/
 	send () {
 		return new Promise((resolve, reject) => {
+			if (this.data) {
+				const lowerCaseHeaders = Object.keys(this.headers).map((headerName) => headerName.toLowerCase())
+
+				if (this.sendDataAs === 'json' && !lowerCaseHeaders.includes('content-type')) {
+					this.headers['Content-Type'] = 'application/json'
+				}
+
+				if (this.sendDataAs === 'form') {
+					if (!lowerCaseHeaders.includes('content-type')) {
+						this.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+					}
+
+					if (!lowerCaseHeaders.includes('content-length')) {
+						this.headers['Content-Length'] = Buffer.from(this.data).length
+					}
+				}
+			}
+
 			const options = {
 				'protocol': this.url.protocol,
-				'host': this.url.host,
+				'host': this.url.hostname,
 				'port': this.url.port,
 				'path': this.url.pathname + this.url.search,
 				'method': this.method,
@@ -178,17 +156,11 @@ module.exports = class CentraRequest {
 			}
 			else throw new Error('Bad URL protocol: ' + this.url.protocol)
 
-			if (this.data) {
-				if (this.sendDataAs === 'raw') {
-					req.write(this.data)
-				}
-				else if (this.sendDataAs === 'json') {
-					req.write(JSON.stringify(this.data))
-				}
-				else if (this.sendDataAs === 'form') {
-					req.write(qs.stringify(this.data))
-				}
-			}
+			req.on('error', (err) => {
+				reject(err)
+			})
+
+			if (this.data) req.write(this.data)
 
 			req.end()
 		})
