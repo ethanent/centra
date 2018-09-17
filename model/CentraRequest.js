@@ -96,6 +96,8 @@ module.exports = class CentraRequest {
 
 			if (this.localAddress) options.localAddress = this.localAddress
 
+			let req
+
 			const resHandler = (res) => {
 				let centraRes
 
@@ -133,8 +135,11 @@ module.exports = class CentraRequest {
 				}
 
 				if (this.timeoutTime) {
-					res.setTimeout(this.timeoutTime, () => {
-						res.destroy()
+					console.log('Set timeout')
+					req.setTimeout(this.timeoutTime, () => {
+						console.log('Hit timeout')
+
+						req.abort()
 						centraRes._timeoutReached()
 
 						if (!this.streamEnabled) {
@@ -143,8 +148,6 @@ module.exports = class CentraRequest {
 					})
 				}
 			}
-
-			let req
 
 			if (this.url.protocol === 'http:') {
 				req = http.request(options, resHandler)

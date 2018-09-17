@@ -13,8 +13,6 @@ app.add('GET', '/simpleGet', (req, res) => {
 app.add('POST', '/testJSON', (req, res) => {
 	let parsed
 
-	console.log(req.body.toString())
-
 	try {
 		parsed = JSON.parse(req.body)
 	}
@@ -45,6 +43,10 @@ app.add('POST', '/testForm', (req, res) => {
 		res.writeHead(400)
 		res.end('Missing form data.')
 	}
+})
+
+app.add('GET', '/doNotResolve', (req, res) => {
+	
 })
 
 app.add((req, res) => {
@@ -79,6 +81,15 @@ w.add('Simple form POST', async (result) => {
 		result(true)
 	}
 	else result(false, await res.text())
+})
+
+w.add('Request timeout', async (result) => {
+	try {
+		await centra('http://localhost:8081/doNotResolve').timeout(2000).send()
+	}
+	catch (err) {
+		result(true, 'Timeout error, as expected. ' + err)
+	}
 })
 
 app.listen(8081, w.test)
