@@ -102,3 +102,11 @@ c('https://ethanent.me').headers({
 }).send()
 ```
 
+### Modify core HTTP request options
+
+See [http.request](https://nodejs.org/dist/latest-v10.x/docs/api/http.html#http_http_request_url_options_callback)'s options for more information about core HTTP request options.
+Let's change our localAddress as an example.
+
+```js
+c('https://ethanent.me').option('localAddress', '127.0.0.2').send()
+```

@@ -12,11 +12,10 @@ module.exports = class CentraRequest {
 		this.method = method
 		this.data = null
 		this.sendDataAs = null
-		this.reqHeaders = {
-			'Host': this.url.host
-		}
+		this.reqHeaders = {}
 		this.streamEnabled = false
 		this.timeoutTime = null
+		this.coreOptions = {}
 
 		return this
 	}
@@ -60,6 +59,12 @@ module.exports = class CentraRequest {
 		return this
 	}
 
+	option (name, value) {
+		this.coreOptions[name] = value
+
+		return this
+	}
+
 	stream () {
 		this.streamEnabled = true
 
@@ -86,17 +91,15 @@ module.exports = class CentraRequest {
 				}
 			}
 
-			const options = {
+			const options = Object.assign({
 				'protocol': this.url.protocol,
 				'host': this.url.hostname,
 				'port': this.url.port,
 				'path': this.url.pathname + this.url.search,
 				'method': this.method,
 				'headers': this.reqHeaders,
-				'setHost': false
-			}
-
-			if (this.localAddress) options.localAddress = this.localAddress
+				'setHost': true
+			}, this.coreOptions)
 
 			let req
 

@@ -45,9 +45,7 @@ app.add('POST', '/testForm', (req, res) => {
 	}
 })
 
-app.add('GET', '/doNotResolve', (req, res) => {
-
-})
+app.add('GET', '/doNotResolve', (req, res) => {})
 
 app.add('GET', '/updates', (req, res) => {
 	if (req.url.path === '/updates?hey=hello' && req.headers['hey'] === 'hello' && req.headers['test'] === 'testing') {
@@ -58,6 +56,11 @@ app.add('GET', '/updates', (req, res) => {
 		res.writeHead(400)
 		res.end()
 	}
+})
+
+app.add('GET', '/testOptionChange', (req, res) => {
+	res.writeHead(200)
+	res.end()
 })
 
 app.add((req, res) => {
@@ -115,7 +118,7 @@ w.add('Update request info on the fly', async (result) => {
 })
 
 w.add('Stream a response', async (result) => {
-	const res = await centra('https://ethanent.me/images/mainLogo.png').stream().send()
+	const res = await centra('http://localhost:8081').stream().send()
 
 	res.once('data', () => {
 		result(true, 'Got data!')
@@ -124,6 +127,15 @@ w.add('Stream a response', async (result) => {
 	res.on('error', (err) => {
 		result(false, err)
 	})
+})
+
+w.add('Edit core HTTP option', async (result) => {
+	const res = await centra('http://localhost:8081').option('path', '/testOptionChange').send()
+
+	if (res.statusCode === 200) {
+		result(true)
+	}
+	else result(false, res.statusCode)
 })
 
 app.listen(8081, w.test)
