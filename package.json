@@ -1,6 +1,6 @@
 {
   "name": "centra",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The powerful and awesome HTTP client for Node",
   "main": "createRequest.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/ethanent/centra/issues"
   },
-  "homepage": "https://github.com/ethanent/centra#readme",
+  "homepage": "https://github.com/ethanent/centra",
   "devDependencies": {
     "vaxic": "^2.3.5",
     "whew": "^1.1.3"
