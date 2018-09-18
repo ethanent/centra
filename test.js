@@ -46,7 +46,7 @@ app.add('POST', '/testForm', (req, res) => {
 })
 
 app.add('GET', '/doNotResolve', (req, res) => {
-	
+
 })
 
 app.add('GET', '/updates', (req, res) => {
@@ -104,7 +104,7 @@ w.add('Request timeout', async (result) => {
 })
 
 w.add('Update request info on the fly', async (result) => {
-	const res = await centra('http://localhost:8081').path('/updates').query('hey', 'hello').header('hey', 'hello').headers({
+	const res = await centra('http://localhost:8081/test').path('../updates').query('hey', 'hello').header('hey', 'hello').headers({
 		'test': 'testing'
 	}).send()
 
@@ -112,6 +112,18 @@ w.add('Update request info on the fly', async (result) => {
 		result(true)
 	}
 	else result(false, res.statusCode)
+})
+
+w.add('Stream a response', async (result) => {
+	const res = await centra('https://ethanent.me/images/mainLogo.png').stream().send()
+
+	res.once('data', () => {
+		result(true, 'Got data!')
+	})
+
+	res.on('error', (err) => {
+		result(false, err)
+	})
 })
 
 app.listen(8081, w.test)

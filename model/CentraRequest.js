@@ -27,8 +27,8 @@ module.exports = class CentraRequest {
 		return this
 	}
 
-	path (path) {
-		this.url.pathname = path
+	path (relativePath) {
+		this.url.pathname = path.join(this.url.pathname, relativePath)
 
 		return this
 	}
@@ -41,6 +41,8 @@ module.exports = class CentraRequest {
 	}
 
 	header (header, value) {
+		if (typeof header === 'object') throw new Error('Got object instead of header name. Maybe you\'re after CentraRequest.headers(name, value).')
+
 		this.reqHeaders[header.toLowerCase()] = value
 
 		return this
@@ -102,24 +104,10 @@ module.exports = class CentraRequest {
 				let centraRes
 
 				if (this.streamEnabled) {
-					centraRes = new CentraResponse(res, true)
-
-					resolve(centraRes)
-
-					res.on('data', (chunk) => {
-						centraRes._addChunk(chunk)
-					})
-
-					res.on('error', (err) => {
-						centraRes._error(err)
-					})
-
-					res.on('end', () => {
-						centraRes._complete()
-					})
+					resolve(res)
 				}
 				else {
-					centraRes = new CentraResponse(res, false)
+					centraRes = new CentraResponse(res)
 
 					res.on('data', (chunk) => {
 						centraRes._addChunk(chunk)
