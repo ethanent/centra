@@ -1,4 +1,5 @@
-<p align="center" style="text-align: center;"><img src="https://github.com/ethanent/centra/blob/master/media/centraLogo.png?raw=true" width="300"/></p>
+<p align="center" style="text-align: center;"><img src="https://github.com/ethanent/centra/blob/master/media/centraLogo.png?raw=true" width="400"/></p>
+
 > The powerful and awesome HTTP client for Node
 
 [GitHub](https://github.com/ethanent/centra) | [NPM](https://npmjs.com/package/centra)
