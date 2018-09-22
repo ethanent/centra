@@ -12,7 +12,7 @@ npm i centra
 
 ## Why centra?
 
-This is the best request library for developers; it provides a number of extremely useful features, while still being one of the most lightweight Node.js HTTP client libraries available.
+This is the best request library for developers; it provides a number of extremely useful features while still being one of the most lightweight Node.js HTTP client libraries available.
 
 ## Use centra!
 
