@@ -107,7 +107,21 @@ w.add('Request timeout', async (result) => {
 })
 
 w.add('Update request info on the fly', async (result) => {
-	const res = await centra('http://localhost:8081/test').path('../updates').query('hey', 'hello').header('hey', 'hello').headers({
+	const res = await centra('http://localhost:8081/test').path('../updates').query('hey', 'hello').header('hey', 'hello').header({
+		'test': 'testing'
+	}).send()
+
+	if (res.statusCode === 200) {
+		result(true)
+	}
+	else result(false, res.statusCode)
+})
+
+w.add('Multiple query and multiple header', async (result) => {
+	const res = await centra('http://localhost:8081/updates').query({
+		'hey': 'hello'
+	}).header({
+		'hey': 'hello',
 		'test': 'testing'
 	}).send()
 

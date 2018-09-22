@@ -1,6 +1,6 @@
 <p align="center" style="text-align: center;"><img src="https://github.com/ethanent/centra/blob/master/media/centraLogo.png?raw=true" width="400"/></p>
 
-> The powerful and awesome HTTP client for Node
+> The powerful, lightweight HTTP client for Node
 
 [GitHub](https://github.com/ethanent/centra) | [NPM](https://npmjs.com/package/centra)
 
@@ -9,6 +9,10 @@
 ```shell
 npm i centra
 ```
+
+## Why centra?
+
+This is the best request library for developers; it provides a number of extremely useful features, while still being one of the most lightweight Node.js HTTP client libraries available.
 
 ## Use centra!
 
@@ -52,8 +56,21 @@ c('https://example.com/nonexistentJSONAPI', 'POST').body({
 
 ### Set query string parameters
 
+One at a time:
+
 ```js
 c('https://example.com/user').query('id', 'u1817760').send().then((res) => {
+	/*...*/
+})
+```
+
+Many at a time:
+
+```js
+c('https://example.com/user').query({
+	'id', 'u1817760',
+	'name': 'Ethan'
+}).send().then((res) => {
 	/*...*/
 })
 ```
@@ -97,8 +114,9 @@ c('https://ethanent.me').header('Content-Type', 'application/json').send()
 Many at a time:
 
 ```js
-c('https://ethanent.me').headers({
-	'Content-Type': 'application/json'
+c('https://ethanent.me').header({
+	'Content-Type': 'application/json',
+	'X-Connecting-With': 'centra'
 }).send()
 ```
 

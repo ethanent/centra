@@ -20,8 +20,13 @@ module.exports = class CentraRequest {
 		return this
 	}
 
-	query (parameter, value) {
-		this.url.searchParams.set(parameter, value)
+	query (a1, a2) {
+		if (typeof a1 === 'object') {
+			Object.keys(a1).forEach((queryKey) => {
+				this.url.searchParams.set(queryKey, a1[queryKey])
+			})
+		}
+		else this.url.searchParams.set(a1, a2)
 
 		return this
 	}
@@ -39,16 +44,13 @@ module.exports = class CentraRequest {
 		return this
 	}
 
-	header (header, value) {
-		if (typeof header === 'object') throw new Error('Got object instead of header name. Maybe you\'re after CentraRequest.headers(name, value).')
-
-		this.reqHeaders[header.toLowerCase()] = value
-
-		return this
-	}
-
-	headers (headers) {
-		Object.assign(this.reqHeaders, headers)
+	header (a1, a2) {
+		if (typeof a1 === 'object') {
+			Object.keys(a1).forEach((headerName) => {
+				this.reqHeaders[headerName.toLowerCase()] = a1[headerName]
+			})
+		}
+		else this.reqHeaders[a1.toLowerCase()] = a2
 
 		return this
 	}
@@ -74,19 +76,17 @@ module.exports = class CentraRequest {
 	send () {
 		return new Promise((resolve, reject) => {
 			if (this.data) {
-				const lowerCaseHeaders = Object.keys(this.reqHeaders).map((headerName) => headerName.toLowerCase())
-
-				if (this.sendDataAs === 'json' && !lowerCaseHeaders.includes('content-type')) {
+				if (this.sendDataAs === 'json' && !this.reqHeaders.hasOwnProperty('content-type')) {
 					this.reqHeaders['Content-Type'] = 'application/json'
 				}
 
 				if (this.sendDataAs === 'form') {
-					if (!lowerCaseHeaders.includes('content-type')) {
+					if (!this.reqHeaders.hasOwnProperty('content-type')) {
 						this.reqHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
 					}
 
-					if (!lowerCaseHeaders.includes('content-length')) {
-						this.reqHeaders['Content-Length'] = Buffer.from(this.data).length
+					if (!this.reqHeaders.hasOwnProperty('content-length')) {
+						this.reqHeaders['Content-Length'] = Buffer.byteLength(this.data)
 					}
 				}
 			}
