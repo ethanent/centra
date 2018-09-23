@@ -56,7 +56,7 @@ module.exports = class CentraRequest {
 	}
 
 	timeout (timeout) {
-		this.timeoutTime = 100
+		this.timeoutTime = timeout
 
 		return this
 	}
