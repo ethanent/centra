@@ -97,8 +97,7 @@ module.exports = class CentraRequest {
 				'port': this.url.port,
 				'path': this.url.pathname + this.url.search,
 				'method': this.method,
-				'headers': this.reqHeaders,
-				'setHost': true
+				'headers': this.reqHeaders
 			}, this.coreOptions)
 
 			let req
