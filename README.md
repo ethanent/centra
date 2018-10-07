@@ -12,7 +12,7 @@ npm i centra
 
 ## Why centra?
 
-This is the best request library for developers; it provides a number of extremely useful features while still being one of the most lightweight Node.js HTTP client libraries available.
+centra is the best request library for developers; it provides a number of extremely useful features while still being one of the most lightweight Node.js HTTP client libraries available.
 
 ## Use centra!
 
@@ -127,4 +127,12 @@ Let's change our localAddress as an example.
 
 ```js
 c('https://ethanent.me').option('localAddress', '127.0.0.2').send()
+```
+
+### Accept compressed responses
+
+```js
+c('https://ethanent.me').compress().send()
+
+// This will cause centra to accept compressed content from the server. (gzip and deflate are currently supported)
 ```

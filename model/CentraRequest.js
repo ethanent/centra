@@ -2,9 +2,12 @@ const path = require('path')
 const http = require('http')
 const https = require('https')
 const qs = require('querystring')
+const zlib = require('zlib')
 const {URL} = require('url')
 
 const CentraResponse = require(path.join(__dirname, 'CentraResponse.js'))
+
+const supportedCompressions = ['gzip', 'deflate']
 
 module.exports = class CentraRequest {
 	constructor (url, method = 'GET') {
@@ -14,6 +17,7 @@ module.exports = class CentraRequest {
 		this.sendDataAs = null
 		this.reqHeaders = {}
 		this.streamEnabled = false
+		this.compressionEnabled = false
 		this.timeoutTime = null
 		this.coreOptions = {}
 
@@ -73,6 +77,14 @@ module.exports = class CentraRequest {
 		return this
 	}
 
+	compress () {
+		this.compressionEnabled = true
+
+		if (!this.reqHeaders['accept-encoding']) this.reqHeaders['accept-encoding'] = supportedCompressions.join(', ')
+
+		return this
+	}
+
 	send () {
 		return new Promise((resolve, reject) => {
 			if (this.data) {
@@ -103,23 +115,34 @@ module.exports = class CentraRequest {
 			let req
 
 			const resHandler = (res) => {
+				let stream = res
+
+				if (this.compressionEnabled) {
+					if (res.headers['content-encoding'] === 'gzip') {
+						stream = res.pipe(zlib.createGunzip())
+					}
+					else if (res.headers['content-encoding'] === 'deflate') {
+						stream = res.pipe(zlib.createInflate())
+					}
+				}
+
 				let centraRes
 
 				if (this.streamEnabled) {
-					resolve(res)
+					resolve(stream)
 				}
 				else {
 					centraRes = new CentraResponse(res)
 
-					res.on('data', (chunk) => {
-						centraRes._addChunk(chunk)
-					})
-
-					res.on('error', (err) => {
+					stream.on('error', (err) => {
 						reject(err)
 					})
 
-					res.on('end', () => {
+					stream.on('data', (chunk) => {
+						centraRes._addChunk(chunk)
+					})
+
+					stream.on('end', () => {
 						resolve(centraRes)
 					})
 				}

@@ -1,6 +1,6 @@
 module.exports = class CentraResponse {
 	constructor (res) {
-		this.res = res
+		this.coreRes = res
 		this.body = Buffer.alloc(0)
 
 		this.headers = res.headers
