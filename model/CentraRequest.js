@@ -27,10 +27,10 @@ module.exports = class CentraRequest {
 	query (a1, a2) {
 		if (typeof a1 === 'object') {
 			Object.keys(a1).forEach((queryKey) => {
-				this.url.searchParams.set(queryKey, a1[queryKey])
+				this.url.searchParams.append(queryKey, a1[queryKey])
 			})
 		}
-		else this.url.searchParams.set(a1, a2)
+		else this.url.searchParams.append(a1, a2)
 
 		return this
 	}
