@@ -177,4 +177,15 @@ w.add('Deflate compression', async (result) => {
 	else result(false)
 })
 
+w.add('Buffer data', async (result) => {
+	const res = await centra('http://localhost:8081/testJSON', 'POST').body(Buffer.from(JSON.stringify({
+		'hey': 'hi'
+	}))).send()
+
+	if (res.statusCode === 200) {
+		result(true)
+	}
+	else result(false, await res.text())
+})
+
 app.listen(8081, w.test)
