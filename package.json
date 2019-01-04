@@ -4,7 +4,8 @@
   "description": "The core lightweight HTTP client for Node",
   "main": "createRequest.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "prepublishOnly": "npm test"
   },
   "repository": {
     "type": "git",
