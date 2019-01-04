@@ -1,7 +1,7 @@
 {
   "name": "centra",
-  "version": "2.2.1",
-  "description": "The powerful and awesome HTTP client for Node",
+  "version": "2.2.2",
+  "description": "The core lightweight HTTP client for Node",
   "main": "createRequest.js",
   "scripts": {
     "test": "node test.js"
@@ -10,7 +10,14 @@
     "type": "git",
     "url": "git+https://github.com/ethanent/centra.git"
   },
-  "keywords": [],
+  "keywords": [
+    "http",
+    "https",
+    "request",
+    "fetch",
+    "url",
+    "lightweight"
+  ],
   "author": "Ethan Davis (https://ethanent.me)",
   "license": "MIT",
   "bugs": {
