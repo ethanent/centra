@@ -5,7 +5,7 @@ const qs = require('querystring')
 const zlib = require('zlib')
 const {URL} = require('url')
 
-const CentraResponse = require(path.join(__dirname, 'CentraResponse.js'))
+const CentraResponse = require('./CentraResponse.js')
 
 const supportedCompressions = ['gzip', 'deflate']
 
