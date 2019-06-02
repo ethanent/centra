@@ -90,14 +90,15 @@ module.exports = class CentraRequest {
 			if (this.data) {
 				if (!this.reqHeaders.hasOwnProperty('content-type')) {
 					if (this.sendDataAs === 'json') {
-						this.reqHeaders['Content-Type'] = 'application/json'
-					} else if (this.sendDataAs === 'form') {
-						this.reqHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
+						this.reqHeaders['content-type'] = 'application/json'
+					}
+					else if (this.sendDataAs === 'form') {
+						this.reqHeaders['content-type'] = 'application/x-www-form-urlencoded'
 					}
 				}
 
 				if (!this.reqHeaders.hasOwnProperty('content-length')) {
-					this.reqHeaders['Content-Length'] = Buffer.byteLength(this.data)
+					this.reqHeaders['content-length'] = Buffer.byteLength(this.data)
 				}
 			}
 
