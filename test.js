@@ -34,6 +34,18 @@ app.add('GET', '/stream', (req, res) => {
 	fs.createReadStream(__filename).pipe(res.coreRes)
 })
 
+app.add('GET', '/forever', (req, res) => {
+	res.res.writeHead(200)
+
+	let sentBytes = 0
+	const bigBuf = Buffer.from('HELLO THERE!'.repeat(100))
+
+	setInterval(() => {
+		res.res.write(bigBuf)
+		sentBytes += bigBuf.length
+	}, 1)
+})
+
 app.add('GET', '/compressed', (req, res) => {
 	const encoding = req.query('encoding')
 
@@ -186,6 +198,25 @@ w.add('Buffer data', async (result) => {
 		result(true)
 	}
 	else result(false, await res.text())
+})
+
+w.add('Error when too much data buffered', async (result) => {
+	try {
+		const req = centra('http://localhost:8081/forever')
+
+		req.resOptions.maxBuffer = 5000
+
+		await req.send()
+	}
+	catch (err) {
+		result(true)
+
+		return
+	}
+
+	result(false)
+
+
 })
 
 app.listen(8081, w.test)

@@ -21,6 +21,10 @@ module.exports = class CentraRequest {
 		this.timeoutTime = null
 		this.coreOptions = {}
 
+		this.resOptions = {
+			'maxBuffer': 50 * 1000000 // 50 MB
+		}
+
 		return this
 	}
 
@@ -131,7 +135,7 @@ module.exports = class CentraRequest {
 					resolve(stream)
 				}
 				else {
-					centraRes = new CentraResponse(res)
+					centraRes = new CentraResponse(res, this.resOptions)
 
 					stream.on('error', (err) => {
 						reject(err)
@@ -139,6 +143,12 @@ module.exports = class CentraRequest {
 
 					stream.on('data', (chunk) => {
 						centraRes._addChunk(chunk)
+
+						if (this.resOptions.maxBuffer !== null && centraRes.body.length > this.resOptions.maxBuffer) {
+							stream.destroy()
+
+							reject('Received a response which was longer than acceptable when buffering. (' + this.body.length + ' bytes)')
+						}
 					})
 
 					stream.on('end', () => {
