@@ -3,7 +3,7 @@ const http = require('http')
 const https = require('https')
 const qs = require('querystring')
 const zlib = require('zlib')
-const urlParser = require('url').parse
+const {URL} = require('url')
 
 const CentraResponse = require('./CentraResponse.js')
 
@@ -11,7 +11,7 @@ const supportedCompressions = ['gzip', 'deflate']
 
 module.exports = class CentraRequest {
 	constructor (url, method = 'GET') {
-		this.url = typeof url === 'string' ? urlParser(url) : url
+		this.url = typeof url === 'string' ? new URL(url) : url
 		this.method = method
 		this.data = null
 		this.sendDataAs = null
