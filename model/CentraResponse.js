@@ -14,7 +14,7 @@ module.exports = class CentraResponse {
 	}
 
 	async json () {
-		return JSON.parse(this.body)
+		return this.statusCode === 204 ? null : JSON.parse(this.body)
 	}
 
 	async text () {

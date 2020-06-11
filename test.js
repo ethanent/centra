@@ -30,6 +30,10 @@ app.add('POST', '/testJSON', (req, res) => {
 	}
 })
 
+app.add('GET', '/json204', (req, res) => {
+	res.status(204).end()
+})
+
 app.add('GET', '/stream', (req, res) => {
 	fs.createReadStream(__filename).pipe(res.coreRes)
 })
@@ -215,8 +219,21 @@ w.add('Error when too much data buffered', async (result) => {
 	}
 
 	result(false)
+})
 
+w.add('Empty JSON data parses to null', async (result) => {
+	const res = await centra('http://localhost:8081/json204').body(Buffer.from(JSON.stringify({
+		'hey': 'hi'
+	}))).send()
 
+	const parsed = await res.json()
+
+	if (parsed === null) {
+		result(true)
+	}
+	else {
+		result(false, 'Did not parse to null')
+	}
 })
 
 app.listen(8081, w.test)
