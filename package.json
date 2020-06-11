@@ -1,6 +1,6 @@
 {
   "name": "centra",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "The core lightweight HTTP client for Node",
   "main": "createRequest.js",
   "scripts": {
