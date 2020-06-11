@@ -110,7 +110,7 @@ module.exports = class CentraRequest {
 				'protocol': this.url.protocol,
 				'host': this.url.hostname,
 				'port': this.url.port,
-				'path': this.url.pathname + this.url.search,
+				'path': this.url.pathname + (this.url.search === null ? '' : this.url.search),
 				'method': this.method,
 				'headers': this.reqHeaders
 			}, this.coreOptions)
