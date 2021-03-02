@@ -87,6 +87,10 @@ app.add('GET', '/testOptionChange', (req, res) => {
 	res.status(200).end()
 })
 
+app.add('GET', '/abort', (req, res) => {
+	res.res.write('partial', () => res.res.socket.destroy())
+})
+
 app.add((req, res) => {
 	res.status(404).end('404: Not found!')
 })
@@ -126,6 +130,16 @@ w.add('Request timeout', async (result) => {
 	}
 	catch (err) {
 		result(true, 'Timeout error, as expected. ' + err)
+	}
+})
+
+w.add('Server-aborted request', async (result) => {
+	try {
+		await centra('http://localhost:8081/abort').send()
+		result(false, 'Aborted request did not reject')
+	}
+	catch (err) {
+		result(true, 'Aborted request rejected, as expected. ' + err)
 	}
 })
 

@@ -141,6 +141,10 @@ module.exports = class CentraRequest {
 						reject(err)
 					})
 
+					stream.on('aborted', () => {
+						reject(new Error('Server aborted request'))
+					})
+
 					stream.on('data', (chunk) => {
 						centraRes._addChunk(chunk)
 
