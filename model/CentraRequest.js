@@ -108,7 +108,7 @@ module.exports = class CentraRequest {
 
 			const options = Object.assign({
 				'protocol': this.url.protocol,
-				'host': this.url.hostname,
+				'host': this.url.hostname.replace('[', '').replace(']', ''),
 				'port': this.url.port,
 				'path': this.url.pathname + (this.url.search === null ? '' : this.url.search),
 				'method': this.method,
