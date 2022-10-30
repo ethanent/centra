@@ -59,6 +59,9 @@ app.add('GET', '/compressed', (req, res) => {
 	else if (encoding === 'deflate') {
 		res.status(200).header('content-encoding', 'deflate').body(zlib.deflateSync(fs.readFileSync(__filename))).end()
 	}
+	else if (encoding === 'brotli') {
+		res.status(200).header('content-encoding', 'brotli').body(zlib.brotliCompressSync(fs.readFileSync(__filename))).end()
+	}
 })
 
 app.add('POST', '/testForm', (req, res) => {
@@ -187,6 +190,15 @@ w.add('Edit core HTTP option', async (result) => {
 		result(true)
 	}
 	else result(false, res.statusCode)
+})
+
+w.add('Brotli compression', async (result) => {
+	const res = await centra('http://localhost:8081/compressed').query('encoding', 'brotli').compress().send()
+
+	if ((await res.text()).includes('hj988SXACXhzxbh89899') && res.headers['content-encoding'] === 'brotli') {
+		result(true, 'Processed ' + res.headers['content-encoding'] + ' compression.')
+	}
+	else result(false)
 })
 
 w.add('Gzip compression', async (result) => {
