@@ -7,7 +7,7 @@ const {URL} = require('url')
 
 const CentraResponse = require('./CentraResponse.js')
 
-const supportedCompressions = ['gzip', 'deflate', 'brotli']
+const supportedCompressions = ['gzip', 'deflate', 'br']
 
 module.exports = class CentraRequest {
 	constructor (url, method = 'GET') {
@@ -127,7 +127,7 @@ module.exports = class CentraRequest {
 					else if (res.headers['content-encoding'] === 'deflate') {
 						stream = res.pipe(zlib.createInflate())
 					}
-					else if (res.headers['content-encoding'] === 'brotli') {
+					else if (res.headers['content-encoding'] === 'br') {
 						stream = res.pipe(zlib.createBrotliDecompress())
 					}
 				}
