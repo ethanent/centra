@@ -1,265 +1,268 @@
-const R = require('retra')
-const w = require('whew')
+const express = require('express')
+const bodyParser = require('body-parser')
+const test = require('node:test')
+const assert = require('node:assert/strict')
 const zlib = require('zlib')
 const fs = require('fs')
 const centra = require('./')
 const qs = require('querystring')
 
-const app = new R()
+const app = express()
 
-app.add('GET', '/simpleGet', (req, res) => {
-	res.status(200).body('Hey').end()
+app.use(bodyParser.raw())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded())
+
+app.get('/simpleGet', (req, res) => {
+	res.status(200)
+	res.send('Hey')
 })
 
-app.add('POST', '/testJSON', (req, res) => {
-	let parsed
-
-	try {
-		parsed = JSON.parse(req.body)
-	}
-	catch (err) {
-		res.status(400).body('Bad request body').end()
-		return
-	}
-
-	if (parsed.hey === 'hi') {
-		res.status(200).body('Done').end()
+app.post('/testJSON', (req, res) => {
+	if (req.body.hey === 'hi' && req.header('content-type') === 'application/json') {
+		res.status(200)
+		res.send('Done')
 	}
 	else {
-		res.status(400).body('Bad content').end()
+		res.status(400)
+		res.send('Bad content ' + JSON.stringify(req.body))
 	}
 })
 
-app.add('GET', '/json204', (req, res) => {
-	res.status(204).end()
+app.get('/json204', (req, res) => {
+	res.status(204)
+	res.end()
 })
 
-app.add('GET', '/stream', (req, res) => {
-	fs.createReadStream(__filename).pipe(res.coreRes)
+app.get('/stream', (req, res) => {
+	res.sendFile(__filename)
 })
 
-app.add('GET', '/forever', (req, res) => {
-	res.res.writeHead(200)
-
-	let sentBytes = 0
-	const bigBuf = Buffer.from('HELLO THERE!'.repeat(100))
-
+app.get('/forever', (req, res) => {
+	res.status(200)
 	setInterval(() => {
-		res.res.write(bigBuf)
-		sentBytes += bigBuf.length
+		res.write('a')
 	}, 1)
 })
 
-app.add('GET', '/compressed', (req, res) => {
-	const encoding = req.query('encoding')
+app.get('/compressed', (req, res) => {
+	const encoding = req.query['encoding']
 
 	if (encoding === 'gzip') {
-		res.status(200).header('content-encoding', 'gzip').body(zlib.gzipSync(fs.readFileSync(__filename))).end()
+		res.status(200)
+		res.header('content-encoding', 'gzip')
+		res.send(zlib.gzipSync(fs.readFileSync(__filename)))
 	}
 	else if (encoding === 'deflate') {
-		res.status(200).header('content-encoding', 'deflate').body(zlib.deflateSync(fs.readFileSync(__filename))).end()
+		res.status(200)
+		res.header('content-encoding', 'deflate')
+		res.send(zlib.deflateSync(fs.readFileSync(__filename)))
 	}
 	else if (encoding === 'br') {
-		res.status(200).header('content-encoding', 'br').body(zlib.brotliCompressSync(fs.readFileSync(__filename))).end()
+		res.status(200)
+		res.header('content-encoding', 'br')
+		res.send(zlib.brotliCompressSync(fs.readFileSync(__filename)))
 	}
 })
 
-app.add('POST', '/testForm', (req, res) => {
-	const parsed = qs.parse(req.body.toString())
-
-	if (parsed.hey === 'hi') {
-		res.status(200).end()
+app.post('/testForm', (req, res) => {
+	if (req.body.hey === 'hi' && req.header('content-type') === 'application/x-www-form-urlencoded') {
+		res.status(200)
+		res.end()
+		return
 	}
 	else {
-		res.status(400).body('Missing form data.').end()
+		res.status(400)
+		res.send('Missing form data. ' + JSON.stringify(req.body))
 	}
 })
 
-app.add('GET', '/doNotResolve', (req, res) => {})
+app.get('/doNotResolve', (req, res) => {})
 
-app.add('GET', '/updates', (req, res) => {
-	if (req.query('hey') === 'hello' && req.headers['hey'] === 'hello' && req.headers['test'] === 'testing') {
-		res.status(200).end()
+app.get('/updates', (req, res) => {
+	if (req.query['hey'] === 'hello' && req.headers['hey'] === 'hello' && req.headers['test'] === 'testing') {
+		res.status(200)
+		res.end()
 	}
 	else {
-		res.status(400).end()
+		res.status(400)
+		res.end()
 	}
 })
 
-app.add('GET', '/testOptionChange', (req, res) => {
+app.get('/testOptionChange', (req, res) => {
 	res.status(200).end()
 })
 
-app.add('GET', '/abort', (req, res) => {
-	res.res.write('partial', () => res.res.socket.destroy())
+app.get('/abort', (req, res) => {
+	res.write('partial')
+	res.socket.destroy()
 })
 
-app.add((req, res) => {
-	res.status(404).end('404: Not found!')
-})
-
-w.add('Simple GET', async (result) => {
-	if (await (await centra('http://localhost:8081/simpleGet').send()).text() === 'Hey') {
-		result(true)
-	}
-	else result(false)
-})
-
-w.add('Simple JSON POST', async (result) => {
-	const res = await centra('http://localhost:8081/testJSON', 'POST').body({
-		'hey': 'hi'
-	}, 'json').send()
-
-	if (res.statusCode === 200) {
-		result(true)
-	}
-	else result(false, await res.text())
-})
-
-w.add('Simple form POST', async (result) => {
-	const res = await centra('http://localhost:8081/testForm', 'POST').body({
-		'hey': 'hi'
-	}, 'form').send()
-
-	if (res.statusCode === 200) {
-		result(true)
-	}
-	else result(false, await res.text())
-})
-
-w.add('Request timeout', async (result) => {
-	try {
-		await centra('http://localhost:8081/doNotResolve').timeout(100).send()
-	}
-	catch (err) {
-		result(true, 'Timeout error, as expected. ' + err)
-	}
-})
-
-w.add('Server-aborted request', async (result) => {
-	try {
-		await centra('http://localhost:8081/abort').send()
-		result(false, 'Aborted request did not reject')
-	}
-	catch (err) {
-		result(true, 'Aborted request rejected, as expected. ' + err)
-	}
-})
-
-w.add('Update request info on the fly', async (result) => {
-	const res = await centra('http://localhost:8081/test').path('../updates').query('hey', 'hello').header('hey', 'hello').header({
-		'test': 'testing'
-	}).send()
-
-	if (res.statusCode === 200) {
-		result(true)
-	}
-	else result(false, res.statusCode)
-})
-
-w.add('Multiple query and multiple header', async (result) => {
-	const res = await centra('http://localhost:8081/updates').query({
-		'hey': 'hello'
-	}).header({
-		'hey': 'hello',
-		'test': 'testing'
-	}).send()
-
-	if (res.statusCode === 200) {
-		result(true)
-	}
-	else result(false, res.statusCode)
-})
-
-w.add('Stream a response', async (result) => {
-	const res = await centra('http://localhost:8081/stream').stream().send()
-
-	res.once('data', () => {
-		result(true, 'Got data!')
+const runTests = () => {
+	test('Simple GET', async (result) => {
+		if (await (await centra('http://localhost:8081/simpleGet').send()).text() === 'Hey') {
+			return
+		}
+		throw new Error('fail')
 	})
 
-	res.on('error', (err) => {
-		result(false, err)
+	test('Simple JSON POST', async (result) => {
+		const res = await centra('http://localhost:8081/testJSON', 'POST').body({
+			'hey': 'hi'
+		}, 'json').send()
+
+		if (res.statusCode === 200) {
+			return
+		}
+		throw new Error(await res.text())
 	})
-})
 
-w.add('Edit core HTTP option', async (result) => {
-	const res = await centra('http://localhost:8081').option('path', '/testOptionChange').send()
+	test('Simple form POST', async (t) => {
+		const res = await centra('http://localhost:8081/testForm', 'POST').body({
+			'hey': 'hi'
+		}, 'form').send()
 
-	if (res.statusCode === 200) {
-		result(true)
-	}
-	else result(false, res.statusCode)
-})
+		if (res.statusCode === 200) {
+			return
+		}
+		throw new Error(await res.text())
+	})
 
-w.add('Brotli compression', async (result) => {
-	const res = await centra('http://localhost:8081/compressed').query('encoding', 'br').compress().send()
+	test('Request timeout', async (t) => {
+		try {
+			await centra('http://localhost:8081/doNotResolve').timeout(100).send()
+		}
+		catch (err) {
+			t.diagnostic('Timeout error, as expected. ' + err)
+			return
+		}
+		throw new Error('fail')
+	})
 
-	if ((await res.text()).includes('hj988SXACXhzxbh89899') && res.headers['content-encoding'] === 'br') {
-		result(true, 'Processed ' + res.headers['content-encoding'] + ' compression.')
-	}
-	else result(false)
-})
+	test('Server-aborted request', (t) => new Promise((resolve, reject) => {
+		const p = centra('http://localhost:8081/abort').send()
+		p.then(() => {
+			t.diagnostic('Aborted request did not reject')
+			reject()
+		})
+		p.catch(() => {
+			resolve()
+		})
+	}))
 
-w.add('Gzip compression', async (result) => {
-	const res = await centra('http://localhost:8081/compressed').query('encoding', 'gzip').compress().send()
+	test('Update request info on the fly', async (t) => {
+		const res = await centra('http://localhost:8081/test').path('../updates').query('hey', 'hello').header('hey', 'hello').header({
+			'test': 'testing'
+		}).send()
 
-	if ((await res.text()).includes('hj9889ASXhzxbh89899') && res.headers['content-encoding'] === 'gzip') {
-		result(true, 'Processed ' + res.headers['content-encoding'] + ' compression.')
-	}
-	else result(false)
-})
+		if (res.statusCode === 200) {
+			return
+		}
+		throw new Error(res.statusCode)
+	})
 
-w.add('Deflate compression', async (result) => {
-	const res = await centra('http://localhost:8081/compressed').query('encoding', 'deflate').compress().send()
+	test('Multiple query and multiple header', async (t) => {
+		const res = await centra('http://localhost:8081/updates').query({
+			'hey': 'hello'
+		}).header({
+			'hey': 'hello',
+			'test': 'testing'
+		}).send()
 
-	if ((await res.text()).includes('hj988SXACXhzxbh89899') && res.headers['content-encoding'] === 'deflate') {
-		result(true, 'Processed ' + res.headers['content-encoding'] + ' compression.')
-	}
-	else result(false)
-})
+		if (res.statusCode === 200) {
+			return
+		}
+		throw new Error(res.statusCode)
+	})
 
-w.add('Buffer data', async (result) => {
-	const res = await centra('http://localhost:8081/testJSON', 'POST').body(Buffer.from(JSON.stringify({
-		'hey': 'hi'
-	}))).send()
+	test('Stream a response', async (t) => {
+		const res = await centra('http://localhost:8081/stream').stream().send()
 
-	if (res.statusCode === 200) {
-		result(true)
-	}
-	else result(false, await res.text())
-})
+		return new Promise((resolve, reject) => {
+			res.once('data', () => {
+				resolve('Got data!')
+			})
+			res.on('error', (err) => {
+				reject(err)
+			})
+		})
+	})
 
-w.add('Error when too much data buffered', async (result) => {
-	try {
-		const req = centra('http://localhost:8081/forever')
+	test('Edit core HTTP option', async (t) => {
+		const res = await centra('http://localhost:8081').option('path', '/testOptionChange').send()
 
-		req.resOptions.maxBuffer = 5000
+		if (res.statusCode === 200) {
+			return
+		}
+		throw new Error(res.statusCode)
+	})
 
-		await req.send()
-	}
-	catch (err) {
-		result(true)
+	test('Brotli compression', async (t) => {
+		const res = await centra('http://localhost:8081/compressed').query('encoding', 'br').compress().send()
 
-		return
-	}
+		if ((await res.text()).includes('hj988SXACXhzxbh89899') && res.headers['content-encoding'] === 'br') {
+			t.diagnostic('Processed ' + res.headers['content-encoding'] + ' compression.')
+			return
+		}
+		throw new Error('fail')
+	})
 
-	result(false)
-})
+	test('Gzip compression', async (t) => {
+		const res = await centra('http://localhost:8081/compressed').query('encoding', 'gzip').compress().send()
 
-w.add('Empty JSON data parses to null', async (result) => {
-	const res = await centra('http://localhost:8081/json204').body(Buffer.from(JSON.stringify({
-		'hey': 'hi'
-	}))).send()
+		if ((await res.text()).includes('hj9889ASXhzxbh89899') && res.headers['content-encoding'] === 'gzip') {
+			t.diagnostic('Processed ' + res.headers['content-encoding'] + ' compression.')
+			return
+		}
+		throw new Error('fail')
+	})
 
-	const parsed = await res.json()
+	test('Deflate compression', async (t) => {
+		const res = await centra('http://localhost:8081/compressed').query('encoding', 'deflate').compress().send()
 
-	if (parsed === null) {
-		result(true)
-	}
-	else {
-		result(false, 'Did not parse to null')
-	}
-})
+		if ((await res.text()).includes('hj988SXACXhzxbh89899') && res.headers['content-encoding'] === 'deflate') {
+			t.diagnostic('Processed ' + res.headers['content-encoding'] + ' compression.')
+			return
+		}
+		throw new Error('fail')
+	})
 
-app.listen(8081, w.test)
+	test('Buffer data', async (t) => {
+		const res = await centra('http://localhost:8081/testJSON', 'POST').header("Content-Type", "application/json").body(Buffer.from(JSON.stringify({
+			'hey': 'hi'
+		}))).send()
+
+		if (res.statusCode === 200) {
+			return
+		}
+		throw new Error(await res.text())
+	})
+
+	test('Error when too much data buffered', async (t) => {
+		try {
+			const req = centra('http://localhost:8081/forever')
+
+			req.resOptions.maxBuffer = 100
+
+			await req.send()
+		}
+		catch (err) {
+			return
+		}
+
+		throw new Error('fail')
+	})
+
+	test('Empty JSON data parses to null', async (t) => {
+		const res = await centra('http://localhost:8081/json204').body(Buffer.from(JSON.stringify({
+			'hey': 'hi'
+		}))).send()
+
+		const parsed = await res.json()
+
+		assert.equal(parsed, null)
+	})
+}
+
+const server = app.listen(8081, runTests)
