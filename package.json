@@ -11,6 +11,11 @@
     "type": "git",
     "url": "git+https://github.com/ethanent/centra.git"
   },
+  "files": [
+      "model/CentraRequest.js",
+      "model/CentraResponse.js",
+      "createRequest.js"
+  ],
   "keywords": [
     "http",
     "https",
