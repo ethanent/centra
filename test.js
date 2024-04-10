@@ -13,7 +13,29 @@ app.use(bodyParser.raw())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded())
 
+app.get('/redirectRequireCookie', (req, res) => {
+	if (req.header('Cookie') !== 'a=b') {
+		res.status(401)
+		res.send('Missing Cookie')
+		return
+	}
+	res.redirect('http://localhost:8082/simpleGet')
+})
+
+app.get('/redirect2', (req, res) => {
+	res.redirect('/redirect')
+})
+
+app.get('/redirect', (req, res) => {
+	res.redirect('http://localhost:8082/simpleGet')
+})
+
 app.get('/simpleGet', (req, res) => {
+	if (req.header("Cookie")) {
+		res.status(401)
+		res.send('Cookie header included')
+		return
+	}
 	res.status(200)
 	res.send('Hey')
 })
@@ -100,14 +122,48 @@ app.get('/abort', (req, res) => {
 })
 
 const runTests = () => {
-	test('Simple GET', async (result) => {
+	test('Simple GET', async (t) => {
 		if (await (await centra('http://localhost:8081/simpleGet').send()).text() === 'Hey') {
 			return
 		}
 		throw new Error('fail')
 	})
 
-	test('Simple JSON POST', async (result) => {
+	test('GET redirect', async (t) => {
+		if (await (await centra('http://localhost:8081/redirect').followRedirects(5).send()).text() === 'Hey') {
+			return
+		}
+		throw new Error('fail')
+	})
+
+	test('GET too many redirects', async (t) => {
+		try {
+			await centra('http://localhost:8081/redirect2').followRedirects(1).send()
+		}
+		catch (err) {
+			t.diagnostic('Got error: ' + err)
+			return
+		}
+		throw new Error('Missing error')
+	})
+
+	test('GET no redirect', async (t) => {
+		const status = (await centra('http://localhost:8081/redirect').send()).statusCode
+		if (status === 302) {
+			return
+		}
+		throw new Error(status)
+	})
+
+	test('GET redirect with Cookie', async (t) => {
+		const status = (await centra('http://localhost:8081/redirectRequireCookie').header('Cookie', 'a=b').header('hi', 'ok').followRedirects(2).send()).statusCode
+		if (status === 200) {
+			return
+		}
+		throw new Error(status)
+	})
+
+	test('Simple JSON POST', async (t) => {
 		const res = await centra('http://localhost:8081/testJSON', 'POST').body({
 			'hey': 'hi'
 		}, 'json').send()
@@ -265,4 +321,6 @@ const runTests = () => {
 	})
 }
 
-const server = app.listen(8081, runTests)
+const server = app.listen(8081, () => {
+	app.listen(8082, runTests)
+})

@@ -1,6 +1,7 @@
 const path = require('path')
 const http = require('http')
 const https = require('https')
+const followRedirects = require('follow-redirects')
 const qs = require('querystring')
 const zlib = require('zlib')
 const {URL} = require('url')
@@ -8,6 +9,27 @@ const {URL} = require('url')
 const CentraResponse = require('./CentraResponse.js')
 
 const supportedCompressions = ['gzip', 'deflate', 'br']
+
+const useRequest = (protocol, maxRedirects) => {
+	let httpr
+	let httpsr
+	if (maxRedirects <= 0) {
+		httpr = http.request
+		httpsr = https.request
+	}
+	else {
+		httpr = followRedirects.http.request
+		httpsr = followRedirects.https.request
+	}
+
+	if (protocol === 'http:') {
+		return httpr
+	}
+	else if (protocol === 'https:') {
+		return httpsr
+	}
+	else throw new Error('Bad URL protocol: ' + protocol)
+}
 
 module.exports = class CentraRequest {
 	constructor (url, method = 'GET') {
@@ -20,10 +42,17 @@ module.exports = class CentraRequest {
 		this.compressionEnabled = false
 		this.timeoutTime = null
 		this.coreOptions = {}
+		this.maxRedirects = 0
 
 		this.resOptions = {
 			'maxBuffer': 50 * 1000000 // 50 MB
 		}
+
+		return this
+	}
+
+	followRedirects(n) {
+		this.maxRedirects = n
 
 		return this
 	}
@@ -112,7 +141,8 @@ module.exports = class CentraRequest {
 				'port': this.url.port,
 				'path': this.url.pathname + (this.url.search === null ? '' : this.url.search),
 				'method': this.method,
-				'headers': this.reqHeaders
+				'headers': this.reqHeaders,
+				'maxRedirects': this.maxRedirects
 			}, this.coreOptions)
 
 			let req
@@ -164,13 +194,9 @@ module.exports = class CentraRequest {
 				}
 			}
 
-			if (this.url.protocol === 'http:') {
-				req = http.request(options, resHandler)
-			}
-			else if (this.url.protocol === 'https:') {
-				req = https.request(options, resHandler)
-			}
-			else throw new Error('Bad URL protocol: ' + this.url.protocol)
+			const request = useRequest(this.url.protocol, this.maxRedirects)
+
+			req = request(options, resHandler)
 
 			if (this.timeoutTime) {
 				req.setTimeout(this.timeoutTime, () => {

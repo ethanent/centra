@@ -12,9 +12,9 @@
     "url": "git+https://github.com/ethanent/centra.git"
   },
   "files": [
-      "model/CentraRequest.js",
-      "model/CentraResponse.js",
-      "createRequest.js"
+    "model/CentraRequest.js",
+    "model/CentraResponse.js",
+    "createRequest.js"
   ],
   "keywords": [
     "http",
@@ -24,16 +24,17 @@
     "url",
     "lightweight"
   ],
-  "author": "Ethan Davis (https://ethanent.me)",
+  "author": "Ethan Davis",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ethanent/centra/issues"
   },
   "homepage": "https://github.com/ethanent/centra",
   "devDependencies": {
+    "body-parser": "^1.20.2",
     "express": "^4.19.2"
   },
   "dependencies": {
-    "body-parser": "^1.20.2"
+    "follow-redirects": "^1.15.6"
   }
 }
