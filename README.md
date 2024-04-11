@@ -95,6 +95,12 @@ In this example, the [stream](https://nodejs.org/api/stream.html) is piped to a 
 c('https://example.com').stream().send().then((stream) => stream.pipe(fs.createWriteStream(path.join(__dirname, 'logo.png'))))
 ```
 
+### Follow redirects
+
+```js
+c('https://example.com/').followRedirects(5).send()
+```
+
 ### Switch paths on the fly
 
 ```js
