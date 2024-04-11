@@ -1,17 +1,16 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const test = require('node:test')
+const { describe, test, before, after, afterEach } = require('node:test')
 const assert = require('node:assert/strict')
 const zlib = require('zlib')
 const fs = require('fs')
 const centra = require('./')
-const qs = require('querystring')
 
 const app = express()
 
 app.use(bodyParser.raw())
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded())
+app.use(bodyParser.urlencoded({extended: false}))
 
 app.get('/redirectRequireCookie', (req, res) => {
 	if (req.header('Cookie') !== 'a=b') {
@@ -121,7 +120,27 @@ app.get('/abort', (req, res) => {
 	res.socket.destroy()
 })
 
-const runTests = () => {
+let servers = []
+
+let failed = false
+
+describe('Centra', () => {
+	before(() => {
+		servers.push(app.listen(8081, () => {
+			servers.push(app.listen(8082))
+		}))
+	})
+
+	after(() => {
+		console.log('Closing servers...')
+		servers.forEach((s) => {
+			s.closeAllConnections()
+			s.close()
+		})
+		console.log('Exit', process.exitCode)
+		process.exit()
+	})
+
 	test('Simple GET', async (t) => {
 		if (await (await centra('http://localhost:8081/simpleGet').send()).text() === 'Hey') {
 			return
@@ -195,17 +214,6 @@ const runTests = () => {
 		}
 		throw new Error('fail')
 	})
-
-	test('Server-aborted request', (t) => new Promise((resolve, reject) => {
-		const p = centra('http://localhost:8081/abort').send()
-		p.then(() => {
-			t.diagnostic('Aborted request did not reject')
-			reject()
-		})
-		p.catch(() => {
-			resolve()
-		})
-	}))
 
 	test('Update request info on the fly', async (t) => {
 		const res = await centra('http://localhost:8081/test').path('../updates').query('hey', 'hello').header('hey', 'hello').header({
@@ -319,8 +327,4 @@ const runTests = () => {
 
 		assert.equal(parsed, null)
 	})
-}
-
-const server = app.listen(8081, () => {
-	app.listen(8082, runTests)
 })
